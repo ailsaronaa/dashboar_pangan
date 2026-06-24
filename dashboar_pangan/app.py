@@ -99,69 +99,127 @@ st.markdown("""
 # 2. FUNGSI MEMBACA DATA EXCEL LOKAL
 @st.cache_data
 def load_local_data():
-    path_padi = "produksi padi (ton).xlsx"
-    path_jagung = "PRODUKSI JAGUNG (TON).xlsx"
-    path_prod_cabe = "produksi cabe rawit.xlsx"
-    path_prod_kacang = "produksi kacang panjang.xlsx"
-    path_prod_ketimun = "produksi ketimun.xlsx"
-    
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    path_padi = os.path.join(BASE_DIR, "produksi padi (ton).xlsx")
+    path_jagung = os.path.join(BASE_DIR, "PRODUKSI JAGUNG (TON).xlsx")
+    path_prod_cabe = os.path.join(BASE_DIR, "produksi cabe rawit.xlsx")
+    path_prod_kacang = os.path.join(BASE_DIR, "produksi kacang panjang.xlsx")
+    path_prod_ketimun = os.path.join(BASE_DIR, "produksi ketimun.xlsx")
+
     df_padi = pd.DataFrame()
     df_jagung = pd.DataFrame()
 
     def clean_vegetable_df(path):
-        if not os.path.exists(path):
-            return pd.DataFrame()
         try:
             df_raw = pd.read_excel(path, header=None)
+
             header_idx = 0
             for idx, row in df_raw.iterrows():
-                row_str = row.astype(str).str.upper().tolist()
-                if any('PROVINSI' in str(cell) for cell in row_str if pd.notna(cell)):
+                if row.astype(str).str.contains("PROVINSI", case=False).any():
                     header_idx = idx
                     break
+
             df = pd.read_excel(path, header=header_idx)
+
             df.columns.values[0] = "Provinsi"
             df.columns = df.columns.astype(str).str.strip()
-            df = df.dropna(subset=['Provinsi'])
-            df = df[~df['Provinsi'].str.upper().str.contains('INDONESIA|PROVINSI|^$', regex=True)]
-            df['Provinsi'] = df['Provinsi'].str.upper().str.strip()
-            for col in ['2021', '2022', '2023', '2024']:
+
+            df = df.dropna(subset=["Provinsi"])
+
+            df["Provinsi"] = (
+                df["Provinsi"]
+                .astype(str)
+                .str.upper()
+                .str.strip()
+            )
+
+            df = df[
+                ~df["Provinsi"].str.contains(
+                    "INDONESIA|PROVINSI",
+                    na=False
+                )
+            ]
+
+            for col in ["2021", "2022", "2023", "2024"]:
                 if col in df.columns:
-                    df[col] = pd.to_numeric(df[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
-                else:
-                    df[col] = 0.0
-            return df[['Provinsi', '2021', '2022', '2023', '2024']]
+                    df[col] = pd.to_numeric(
+                        df[col],
+                        errors="coerce"
+                    ).fillna(0)
+
+            return df
+
         except Exception as e:
+            st.error(f"ERROR membaca {path}: {e}")
             return pd.DataFrame()
 
-    if os.path.exists(path_padi):
-        df_padi = pd.read_excel(path_padi, sheet_name=0)
-        df_padi.columns = df_padi.columns.astype(str).str.strip()
-        df_padi['Provinsi'] = df_padi['Provinsi'].astype(str).str.replace(r'^\d+,\s*', '', regex=True)
-        df_padi = df_padi[df_padi['Provinsi'].str.upper() != 'INDONESIA']
-        df_padi['Provinsi'] = df_padi['Provinsi'].str.upper().str.strip()
-        for col in ['2021', '2022', '2023', '2024', '2025']:
-            if col in df_padi.columns:
-                df_padi[col] = pd.to_numeric(df_padi[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
+    try:
+        df_padi = pd.read_excel(path_padi)
 
-    if os.path.exists(path_jagung):
-        df_jagung = pd.read_excel(path_jagung, sheet_name=0, header=3)
-        df_jagung.columns.values[0] = "Provinsi"
-        df_jagung.columns = ["Provinsi", "2021", "2022", "2023", "2024"] + list(df_jagung.columns[5:])
-        df_jagung.columns = df_jagung.columns.astype(str).str.strip()
-        df_jagung = df_jagung.dropna(subset=['Provinsi'])
-        df_jagung = df_jagung[~df_jagung['Provinsi'].str.upper().str.contains('INDONESIA|PROVINSI|^$', regex=True)]
-        df_jagung['Provinsi'] = df_jagung['Provinsi'].str.upper().str.strip()
-        for col in ['2021', '2022', '2023', '2024']:
+        df_padi.columns = (
+            df_padi.columns.astype(str).str.strip()
+        )
+
+        if "No" in df_padi.columns:
+            df_padi = df_padi.drop(columns=["No"])
+
+        df_padi["Provinsi"] = (
+            df_padi["Provinsi"]
+            .astype(str)
+            .str.upper()
+            .str.strip()
+        )
+
+        for col in ["2021", "2022", "2023", "2024", "2025"]:
+            if col in df_padi.columns:
+                df_padi[col] = pd.to_numeric(
+                    df_padi[col],
+                    errors="coerce"
+                ).fillna(0)
+
+    except Exception as e:
+        st.error(f"ERROR PADI: {e}")
+
+    try:
+        df_jagung = pd.read_excel(path_jagung)
+
+        df_jagung.columns = (
+            df_jagung.columns.astype(str).str.strip()
+        )
+
+        if "No" in df_jagung.columns:
+            df_jagung = df_jagung.drop(columns=["No"])
+
+        df_jagung["Provinsi"] = (
+            df_jagung["Provinsi"]
+            .astype(str)
+            .str.upper()
+            .str.strip()
+        )
+
+        for col in ["2021", "2022", "2023", "2024"]:
             if col in df_jagung.columns:
-                df_jagung[col] = pd.to_numeric(df_jagung[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
+                df_jagung[col] = pd.to_numeric(
+                    df_jagung[col],
+                    errors="coerce"
+                ).fillna(0)
+
+    except Exception as e:
+        st.error(f"ERROR JAGUNG: {e}")
 
     df_cabe = clean_vegetable_df(path_prod_cabe)
     df_kacang = clean_vegetable_df(path_prod_kacang)
     df_ketimun = clean_vegetable_df(path_prod_ketimun)
-        
-    return df_padi, df_jagung, df_cabe, df_kacang, df_ketimun
 
+    return (
+        df_padi,
+        df_jagung,
+        df_cabe,
+        df_kacang,
+        df_ketimun
+    )
 df_padi, df_jagung, df_cabe, df_kacang, df_ketimun = load_local_data()
 
 # 3. SIDEBAR CONTROLLER
