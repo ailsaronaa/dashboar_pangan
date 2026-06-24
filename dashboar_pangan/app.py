@@ -325,8 +325,7 @@ st.markdown(f"""
     <div class="insight-box">
         <div class="insight-title">Informasi Tren Produksi:</div>
         <p class="insight-text">
-            Grafik di samping menunjukkan total hasil panen komoditas <b>{komoditas}</b> di seluruh Indonesia.<br><br>
-            Tahun <b>{tahun_terbaru}</b> terkumpul <b>{total_terbaru:,.0f} Ton</b>. Secara umum, tren ketersediaan pangan nasional kita saat ini dinilai <b>{kondisi_tren_text}</b> dibandingkan tahun lalu.
+            Grafik di samping menunjukkan total hasil panen komoditas <b>{komoditas}</b> di seluruh Indonesia.<br><br>Tahun <b>{tahun_terbaru}</b> terkumpul <b>{total_terbaru:,.0f} Ton</b>. Secara umum, tren ketersediaan pangan nasional kita saat ini dinilai <b>{kondisi_tren_text}</b> dibandingkan tahun lalu.
         </p>
     </div>
 """, unsafe_allow_html=True)
