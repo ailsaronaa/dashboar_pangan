@@ -6,7 +6,7 @@ import os
 
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(
-    page_title="Food Flow Analytics",
+    page_title="FoodFlow Analytics",
     layout="wide",
     initial_sidebar_state="expanded"
 )
