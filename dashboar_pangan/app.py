@@ -147,7 +147,7 @@ def load_local_data():
             if col in df_padi.columns:
                 df_padi[col] = pd.to_numeric(df_padi[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
 
-           if os.path.exists(path_jagung):
+    if os.path.exists(path_jagung):
         df_jagung = pd.read_excel(path_jagung)
 
         df_jagung.columns = (
