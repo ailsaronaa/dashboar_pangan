@@ -20,7 +20,7 @@ st.markdown("""
     
     /* Judul Besar Dashboard */
     .main-title {
-        font-size: 2.8rem;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 0.5rem;
@@ -359,7 +359,7 @@ with col_left:
     )
     fig_top.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=450, 
-        margin=dict(l=240, r=80, t=10, b=10), 
+        margin=dict(l=20, r=20, t=10, b=10), 
         xaxis=dict(title=None, showgrid=True, gridcolor='#e2e8f0'),
         yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(color='#0f172a', size=14, weight='bold'))
     )
