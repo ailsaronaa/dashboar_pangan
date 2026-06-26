@@ -313,6 +313,7 @@ fig_tren.update_layout(
     paper_bgcolor='rgba(0,0,0,0)',
     height=360,
     margin=dict(l=60, r=40, t=40, b=20),
+    autosize=True,
     xaxis=dict(type='category', showgrid=False, tickfont=dict(color='#0f172a', size=14, weight="bold")),
     yaxis=dict(showgrid=True, gridcolor='#cbd5e1', tickfont=dict(color='#475569', size=12),
                title=dict(text="Total Produksi (Ton)", font=dict(color='#0f172a', size=12, weight='bold')))
@@ -345,7 +346,8 @@ else:
 df_sorted_bottom = df_aktif[['Provinsi', tahun_terbaru]].sort_values(by=tahun_terbaru, ascending=False)
 bottom_5 = df_sorted_bottom[df_sorted_bottom[tahun_terbaru] > 0].tail(5).sort_values(by=tahun_terbaru, ascending=True)
 
-col_left, col_right = st.columns(2)
+st.plotly_chart(fig_top, use_container_width=True)
+st.plotly_chart(fig_bottom, use_container_width=True)
 
 with col_left:
     st.markdown('<div class="chart-subheader">🟢 Top 5 Daerah Surplus Produksi Tertinggi</div>', unsafe_allow_html=True)
@@ -358,7 +360,7 @@ with col_left:
         insidetextfont=dict(color='#ffffff')
     )
     fig_top.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=450, 
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=350, 
         margin=dict(l=20, r=20, t=10, b=10), 
         xaxis=dict(title=None, showgrid=True, gridcolor='#e2e8f0'),
         yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(color='#0f172a', size=14, weight='bold'))
@@ -377,7 +379,7 @@ with col_right:
     )
     fig_bottom.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=450, 
-        margin=dict(l=240, r=80, t=10, b=10), 
+        margin=dict(l=20, r=20, t=10, b=10), 
         xaxis=dict(title=None, showgrid=True, gridcolor='#e2e8f0'),
         yaxis=dict(title=None, categoryorder='total descending', tickfont=dict(color='#0f172a', size=14, weight='bold'))
     )
@@ -490,7 +492,7 @@ df_risk = df_aktif[['Provinsi', 'Volatilitas']].sort_values(by='Volatilitas', as
 fig_risk = px.bar(df_risk, x='Volatilitas', y='Provinsi', orientation='h', color='Volatilitas',
                   color_continuous_scale=[[0, '#cbd5e1'], [1, '#ef4444']])
 fig_risk.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=400,
+    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=320,
     margin=dict(l=240, r=40, t=10, b=10),
     xaxis=dict(title="Tingkat Ketidakstabilan Naik-Turun Data", showgrid=True, gridcolor='#cbd5e1'),
     yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(color='#0f172a', size=14, weight='bold')),
