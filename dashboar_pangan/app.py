@@ -313,7 +313,6 @@ fig_tren.update_layout(
     paper_bgcolor='rgba(0,0,0,0)',
     height=360,
     margin=dict(l=60, r=40, t=40, b=20),
-    autosize=True,
     xaxis=dict(type='category', showgrid=False, tickfont=dict(color='#0f172a', size=14, weight="bold")),
     yaxis=dict(showgrid=True, gridcolor='#cbd5e1', tickfont=dict(color='#475569', size=12),
                title=dict(text="Total Produksi (Ton)", font=dict(color='#0f172a', size=12, weight='bold')))
