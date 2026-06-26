@@ -147,17 +147,35 @@ def load_local_data():
             if col in df_padi.columns:
                 df_padi[col] = pd.to_numeric(df_padi[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
 
-    if os.path.exists(path_jagung):
-        df_jagung = pd.read_excel(path_jagung, sheet_name=0, header=3)
-        df_jagung.columns.values[0] = "Provinsi"
-        df_jagung.columns = ["Provinsi", "2021", "2022", "2023", "2024"] + list(df_jagung.columns[5:])
-        df_jagung.columns = df_jagung.columns.astype(str).str.strip()
-        df_jagung = df_jagung.dropna(subset=['Provinsi'])
-        df_jagung = df_jagung[~df_jagung['Provinsi'].str.upper().str.contains('INDONESIA|PROVINSI|^$', regex=True)]
-        df_jagung['Provinsi'] = df_jagung['Provinsi'].str.upper().str.strip()
-        for col in ['2021', '2022', '2023', '2024']:
-            if col in df_jagung.columns:
-                df_jagung[col] = pd.to_numeric(df_jagung[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
+   if os.path.exists(path_jagung):
+    df_jagung = pd.read_excel(path_jagung)
+    df_jagung.columns = df_jagung.columns.astype(str).str.strip()
+
+    df_jagung["Provinsi"] = (
+        df_jagung["Provinsi"]
+        .astype(str)
+        .str.upper()
+        .str.strip()
+    )
+
+    df_jagung = df_jagung[
+        ~df_jagung["Provinsi"].str.contains(
+            "INDONESIA",
+            case=False,
+            na=False
+        )
+    ]
+
+    for col in ["2021", "2022", "2023", "2024"]:
+
+        if col in df_jagung.columns:
+
+            df_jagung[col] = pd.to_numeric(
+                df_jagung[col]
+                .astype(str)
+                .str.replace("-", "0"),
+                errors="coerce"
+            ).fillna(0)
 
     df_cabe = clean_vegetable_df(path_prod_cabe)
     df_kacang = clean_vegetable_df(path_prod_kacang)
