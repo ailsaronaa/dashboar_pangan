@@ -1,3 +1,4 @@
+dashboard 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -6,7 +7,7 @@ import os
 
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(
-    page_title="FoodFlow Analytics",
+    page_title="Food Flow Analytics",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -20,7 +21,7 @@ st.markdown("""
     
     /* Judul Besar Dashboard */
     .main-title {
-        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-size: 2.8rem;
         font-weight: 800;
         color: #0f172a;
         margin-bottom: 0.5rem;
@@ -112,114 +113,59 @@ def load_local_data():
     df_jagung = pd.DataFrame()
 
     def clean_vegetable_df(path):
+        if not os.path.exists(path):
+            return pd.DataFrame()
         try:
             df_raw = pd.read_excel(path, header=None)
-
             header_idx = 0
             for idx, row in df_raw.iterrows():
-                if row.astype(str).str.contains("PROVINSI", case=False).any():
+                row_str = row.astype(str).str.upper().tolist()
+                if any('PROVINSI' in str(cell) for cell in row_str if pd.notna(cell)):
                     header_idx = idx
                     break
-
             df = pd.read_excel(path, header=header_idx)
-
             df.columns.values[0] = "Provinsi"
             df.columns = df.columns.astype(str).str.strip()
-
-            df = df.dropna(subset=["Provinsi"])
-
-            df["Provinsi"] = (
-                df["Provinsi"]
-                .astype(str)
-                .str.upper()
-                .str.strip()
-            )
-
-            df = df[
-                ~df["Provinsi"].str.contains(
-                    "INDONESIA|PROVINSI",
-                    na=False
-                )
-            ]
-
-            for col in ["2021", "2022", "2023", "2024"]:
+            df = df.dropna(subset=['Provinsi'])
+            df = df[~df['Provinsi'].str.upper().str.contains('INDONESIA|PROVINSI|^$', regex=True)]
+            df['Provinsi'] = df['Provinsi'].str.upper().str.strip()
+            for col in ['2021', '2022', '2023', '2024']:
                 if col in df.columns:
-                    df[col] = pd.to_numeric(
-                        df[col],
-                        errors="coerce"
-                    ).fillna(0)
-
-            return df
-
+                    df[col] = pd.to_numeric(df[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
+                else:
+                    df[col] = 0.0
+            return df[['Provinsi', '2021', '2022', '2023', '2024']]
         except Exception as e:
-            st.error(f"ERROR membaca {path}: {e}")
             return pd.DataFrame()
 
-    try:
-        df_padi = pd.read_excel(path_padi)
-
-        df_padi.columns = (
-            df_padi.columns.astype(str).str.strip()
-        )
-
-        if "No" in df_padi.columns:
-            df_padi = df_padi.drop(columns=["No"])
-
-        df_padi["Provinsi"] = (
-            df_padi["Provinsi"]
-            .astype(str)
-            .str.upper()
-            .str.strip()
-        )
-
-        for col in ["2021", "2022", "2023", "2024", "2025"]:
+    if os.path.exists(path_padi):
+        df_padi = pd.read_excel(path_padi, sheet_name=0)
+        df_padi.columns = df_padi.columns.astype(str).str.strip()
+        df_padi['Provinsi'] = df_padi['Provinsi'].astype(str).str.replace(r'^\d+,\s*', '', regex=True)
+        df_padi = df_padi[df_padi['Provinsi'].str.upper() != 'INDONESIA']
+        df_padi['Provinsi'] = df_padi['Provinsi'].str.upper().str.strip()
+        for col in ['2021', '2022', '2023', '2024', '2025']:
             if col in df_padi.columns:
-                df_padi[col] = pd.to_numeric(
-                    df_padi[col],
-                    errors="coerce"
-                ).fillna(0)
+                df_padi[col] = pd.to_numeric(df_padi[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
 
-    except Exception as e:
-        st.error(f"ERROR PADI: {e}")
-
-    try:
-        df_jagung = pd.read_excel(path_jagung)
-
-        df_jagung.columns = (
-            df_jagung.columns.astype(str).str.strip()
-        )
-
-        if "No" in df_jagung.columns:
-            df_jagung = df_jagung.drop(columns=["No"])
-
-        df_jagung["Provinsi"] = (
-            df_jagung["Provinsi"]
-            .astype(str)
-            .str.upper()
-            .str.strip()
-        )
-
-        for col in ["2021", "2022", "2023", "2024"]:
+    if os.path.exists(path_jagung):
+        df_jagung = pd.read_excel(path_jagung, sheet_name=0, header=3)
+        df_jagung.columns.values[0] = "Provinsi"
+        df_jagung.columns = ["Provinsi", "2021", "2022", "2023", "2024"] + list(df_jagung.columns[5:])
+        df_jagung.columns = df_jagung.columns.astype(str).str.strip()
+        df_jagung = df_jagung.dropna(subset=['Provinsi'])
+        df_jagung = df_jagung[~df_jagung['Provinsi'].str.upper().str.contains('INDONESIA|PROVINSI|^$', regex=True)]
+        df_jagung['Provinsi'] = df_jagung['Provinsi'].str.upper().str.strip()
+        for col in ['2021', '2022', '2023', '2024']:
             if col in df_jagung.columns:
-                df_jagung[col] = pd.to_numeric(
-                    df_jagung[col],
-                    errors="coerce"
-                ).fillna(0)
-
-    except Exception as e:
-        st.error(f"ERROR JAGUNG: {e}")
+                df_jagung[col] = pd.to_numeric(df_jagung[col].astype(str).str.replace('-', '0').str.replace(',', ''), errors='coerce').fillna(0)
 
     df_cabe = clean_vegetable_df(path_prod_cabe)
     df_kacang = clean_vegetable_df(path_prod_kacang)
     df_ketimun = clean_vegetable_df(path_prod_ketimun)
+        
+    return df_padi, df_jagung, df_cabe, df_kacang, df_ketimun
 
-    return (
-        df_padi,
-        df_jagung,
-        df_cabe,
-        df_kacang,
-        df_ketimun
-    )
 df_padi, df_jagung, df_cabe, df_kacang, df_ketimun = load_local_data()
 
 # 3. SIDEBAR CONTROLLER
@@ -325,7 +271,8 @@ st.markdown(f"""
     <div class="insight-box">
         <div class="insight-title">Informasi Tren Produksi:</div>
         <p class="insight-text">
-            Grafik di samping menunjukkan total hasil panen komoditas <b>{komoditas}</b> di seluruh Indonesia.<br><br>Tahun <b>{tahun_terbaru}</b> terkumpul <b>{total_terbaru:,.0f} Ton</b>. Secara umum, tren ketersediaan pangan nasional kita saat ini dinilai <b>{kondisi_tren_text}</b> dibandingkan tahun lalu.
+            Grafik di samping menunjukkan total hasil panen komoditas <b>{komoditas}</b> di seluruh Indonesia.<br><br>
+            Tahun <b>{tahun_terbaru}</b> terkumpul <b>{total_terbaru:,.0f} Ton</b>. Secara umum, tren ketersediaan pangan nasional kita saat ini dinilai <b>{kondisi_tren_text}</b> dibandingkan tahun lalu.
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -345,8 +292,7 @@ else:
 df_sorted_bottom = df_aktif[['Provinsi', tahun_terbaru]].sort_values(by=tahun_terbaru, ascending=False)
 bottom_5 = df_sorted_bottom[df_sorted_bottom[tahun_terbaru] > 0].tail(5).sort_values(by=tahun_terbaru, ascending=True)
 
-st.plotly_chart(fig_top, use_container_width=True)
-st.plotly_chart(fig_bottom, use_container_width=True)
+col_left, col_right = st.columns(2)
 
 with col_left:
     st.markdown('<div class="chart-subheader">🟢 Top 5 Daerah Surplus Produksi Tertinggi</div>', unsafe_allow_html=True)
@@ -359,8 +305,8 @@ with col_left:
         insidetextfont=dict(color='#ffffff')
     )
     fig_top.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=350, 
-        margin=dict(l=20, r=20, t=10, b=10), 
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=450, 
+        margin=dict(l=240, r=80, t=10, b=10), 
         xaxis=dict(title=None, showgrid=True, gridcolor='#e2e8f0'),
         yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(color='#0f172a', size=14, weight='bold'))
     )
@@ -378,7 +324,7 @@ with col_right:
     )
     fig_bottom.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=450, 
-        margin=dict(l=20, r=20, t=10, b=10), 
+        margin=dict(l=240, r=80, t=10, b=10), 
         xaxis=dict(title=None, showgrid=True, gridcolor='#e2e8f0'),
         yaxis=dict(title=None, categoryorder='total descending', tickfont=dict(color='#0f172a', size=14, weight='bold'))
     )
@@ -491,7 +437,7 @@ df_risk = df_aktif[['Provinsi', 'Volatilitas']].sort_values(by='Volatilitas', as
 fig_risk = px.bar(df_risk, x='Volatilitas', y='Provinsi', orientation='h', color='Volatilitas',
                   color_continuous_scale=[[0, '#cbd5e1'], [1, '#ef4444']])
 fig_risk.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=320,
+    plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', height=400,
     margin=dict(l=240, r=40, t=10, b=10),
     xaxis=dict(title="Tingkat Ketidakstabilan Naik-Turun Data", showgrid=True, gridcolor='#cbd5e1'),
     yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(color='#0f172a', size=14, weight='bold')),
